@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Annual Income Tax Computation - Government Employee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #17233a; --muted: #5d6b82; --navy: #153463; --gold: #b48a2c;
+    --paper: #eef1f6; --tint: #f5f7fb; --line: #d7dde8; --red: #9f2a2a; --green: #1d6a44;
+    --serif: "Libre Baskerville", Georgia, "Times New Roman", serif;
+    --sans: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.5 var(--sans); }
+
+  /* ---------- Header ---------- */
+  header { background: var(--navy); color: #fff; border-bottom: 4px solid var(--gold);
+           padding: 22px max(16px, env(safe-area-inset-right)) 22px max(16px, env(safe-area-inset-left)); }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  header h1 { margin: 0; font: 700 clamp(20px, 4.6vw, 28px)/1.25 var(--serif); }
+  header p { margin: 6px 0 0; color: #c9d5ea; font-size: 15px; }
+
+  /* ---------- Layout ---------- */
+  main { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 20px; }
+  @media (min-width: 900px) { main { grid-template-columns: minmax(360px, 430px) 1fr; align-items: start; } }
+  .sheet { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 20px 18px; }
+  @media (min-width: 520px) { .sheet { padding: 26px 28px; } }
+
+  /* ---------- Form ---------- */
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  fieldset + fieldset { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 22px; }
+  legend { font: 700 17px var(--serif); color: var(--navy); padding: 0; margin-bottom: 14px; }
+  .grid { display: grid; gap: 16px; }
+  @media (min-width: 520px) { .grid.two { grid-template-columns: 1fr 1fr; } .full { grid-column: 1 / -1; } }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  label { font-weight: 600; font-size: 14.5px; }
+  .hint { font-size: 13px; color: var(--muted); }
+  input { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #b5bfcf; border-radius: 4px;
+          font: inherit; color: var(--ink); background: #fff; }
+  input::placeholder { color: #9aa5b8; }
+  input:focus-visible { outline: 3px solid rgba(21, 52, 99, .28); border-color: var(--navy); }
+  input:user-invalid { border-color: var(--red); }
+  .money { position: relative; }
+  .money span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .money input { padding-left: 30px; }
+
+  #error { display: none; border-left: 4px solid var(--red); background: #fbeeee; color: #6d1a1a;
+           padding: 12px 14px; margin-top: 20px; font-size: 15px; }
+  .actions { display: grid; gap: 10px; margin-top: 24px; }
+  .actions .sub { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  button { font: 600 16px var(--sans); min-height: 48px; padding: 0 16px; border-radius: 4px;
+           border: 1px solid var(--navy); cursor: pointer; }
+  .primary { background: var(--navy); color: #fff; }
+  .primary:hover { background: #0f2649; }
+  .ghost { background: #fff; color: var(--navy); }
+  .ghost:hover { background: var(--tint); }
+  button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  /* ---------- Report ---------- */
+  .empty { text-align: center; padding: 48px 8px; color: var(--muted); }
+  .empty h2 { font: 700 18px var(--serif); color: var(--navy); margin: 0 0 8px; }
+  #report { display: none; }
+  #report > h2 { font: 700 clamp(18px, 4vw, 22px)/1.3 var(--serif); color: var(--navy); margin: 0; }
+  .sub-title { color: var(--muted); font-size: 14.5px; margin: 2px 0 16px; }
+  .verdict { border-left: 4px solid var(--gold); background: var(--tint); padding: 14px 16px; margin-bottom: 20px; }
+  .verdict .k { font-size: 14.5px; color: var(--muted); }
+  .verdict strong { display: block; font: 700 clamp(26px, 7vw, 34px)/1.2 var(--serif); color: var(--navy); }
+  .verdict p { margin: 4px 0 0; font-weight: 600; }
+  .verdict.pay p { color: var(--red); } .verdict.ref p { color: var(--green); }
+  .info { display: grid; gap: 10px 24px; margin: 0; }
+  @media (min-width: 520px) { .info { grid-template-columns: 1fr 1fr; } .info .full { grid-column: 1 / -1; } }
+  .info dt { font-size: 13px; color: var(--muted); }
+  .info dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; min-height: 1.5em; }
+  #report h3 { font: 700 16px var(--serif); color: var(--navy); margin: 24px 0 4px;
+               padding-bottom: 6px; border-bottom: 2px solid var(--gold); }
+  .row { display: flex; align-items: baseline; padding: 7px 0; font-size: 15.5px; font-variant-numeric: tabular-nums; }
+  .row .l { order: 1; }
+  .row::after { content: ""; order: 2; flex: 1 1 12px; min-width: 12px; margin: 0 8px;
+                border-bottom: 1.5px dotted #a9b4c7; transform: translateY(-3px); }
+  .row .v { order: 3; white-space: nowrap; text-align: right; }
+  .row.total { font-weight: 700; border-top: 1px solid var(--line); margin-top: 2px; }
+  .row.due { font-weight: 700; font-size: 17px; background: var(--tint); padding: 9px 8px; margin: 8px 0;
+             border-top: 2px solid var(--navy); border-bottom: 2px solid var(--navy); }
+  .row.pay { color: var(--red); font-weight: 700; } .row.ref { color: var(--green); font-weight: 700; }
+  .note { font-size: 13px; color: var(--muted); margin: 20px 0 16px; }
+  #report .ghost { width: 100%; }
+
+  @media print {
+    body { background: #fff; } header, #formCard, .no-print { display: none; }
+    main { display: block; padding: 0; } .sheet { border: 0; padding: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Annual Income Tax Computation</h1>
+    <p>Compensation income of government employees, based on the BIR graduated rates</p>
+  </div>
+</header>
+
+<main>
+  <!-- ===== INPUT FORM ===== -->
+  <section class="sheet" id="formCard">
+    <form id="empForm" autocomplete="off">
+      <fieldset>
+        <legend>Employee details</legend>
+        <div class="grid two">
+          <div class="field full">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" placeholder="Last name, first name, middle initial" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="employee_no">Employee number</label>
+            <input id="employee_no" name="employee_no" type="text" placeholder="2024-0001">
+          </div>
+          <div class="field">
+            <label for="tin">Tax Identification No. (TIN)</label>
+            <input id="tin" name="tin" type="text" inputmode="numeric" placeholder="000-000-000-000">
+          </div>
+          <div class="field full">
+            <label for="agency">Government agency</label>
+            <input id="agency" name="agency" type="text" placeholder="e.g., Department of Education">
+          </div>
+          <div class="field">
+            <label for="position">Position / salary grade</label>
+            <input id="position" name="position" type="text" placeholder="e.g., Teacher III (SG-16)">
+          </div>
+          <div class="field">
+            <label for="year">Taxable year</label>
+            <input id="year" name="year" type="number" inputmode="numeric" min="2023" step="1">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Compensation</legend>
+        <div class="grid two">
+          <div class="field">
+            <label for="monthly_basic_salary">Monthly basic salary</label>
+            <div class="money"><span aria-hidden="true">₱</span>
+              <input id="monthly_basic_salary" name="monthly_basic_salary" type="number" inputmode="decimal" min="0.01" step="any" placeholder="0.00" required></div>
+          </div>
+          <div class="field">
+            <label for="months_worked">Months in service</label>
+            <input id="months_worked" name="months_worked" type="number" inputmode="numeric" min="1" max="12" step="1" value="12" required>
+            <span class="hint">From 1 to 12 months</span>
+          </div>
+          <div class="field full">
+            <label for="other_taxable_compensation">Other taxable compensation (yearly)</label>
+            <div class="money"><span aria-hidden="true">₱</span>
+              <input id="other_taxable_compensation" name="other_taxable_compensation" type="number" inputmode="decimal" min="0" step="any" value="0"></div>
+            <span class="hint">Overtime pay, honoraria, and other taxable allowances</span>
+          </div>
+          <div class="field full">
+            <label for="other_13th_month_benefits">Other bonuses and benefits (yearly)</label>
+            <div class="money"><span aria-hidden="true">₱</span>
+              <input id="other_13th_month_benefits" name="other_13th_month_benefits" type="number" inputmode="decimal" min="0" step="any" value="0"></div>
+            <span class="hint">Added on top of the standard mid-year bonus, year-end bonus, cash gift, and PEI</span>
+          </div>
+          <div class="field full">
+            <label for="tax_withheld">Tax already withheld (yearly)</label>
+            <div class="money"><span aria-hidden="true">₱</span>
+              <input id="tax_withheld" name="tax_withheld" type="number" inputmode="decimal" min="0" step="any" value="0"></div>
+            <span class="hint">Total shown on your payslips or BIR Form 2316</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <div id="error" role="alert"></div>
+      <div class="actions">
+        <button type="submit" class="primary">Compute tax</button>
+        <div class="sub">
+          <button type="button" class="ghost" id="demoBtn">Fill sample data</button>
+          <button type="reset" class="ghost">Clear form</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- ===== RESULT (filled in by JavaScript through the data-f attributes) ===== -->
+  <section class="sheet">
+    <div class="empty" id="placeholder">
+      <h2>No computation yet</h2>
+      <p>Enter the employee's details, then select <b>Compute tax</b> to see the full statement here.</p>
+    </div>
+
+    <div id="report">
+      <h2>Annual income tax summary</h2>
+      <p class="sub-title">Bureau of Internal Revenue &ndash; compensation income</p>
+
+      <div class="verdict" id="verdict">
+        <span class="k">Tax due for <span data-f="employee.year"></span></span>
+        <strong data-f="taxable.tax_due" data-t="peso"></strong>
+        <p id="verdictNote"></p>
+      </div>
+
+      <dl class="info">
+        <div class="full"><dt>Employee</dt><dd data-f="employee.name"></dd></div>
+        <div><dt>Employee number</dt><dd data-f="employee.employee_no"></dd></div>
+        <div><dt>TIN</dt><dd data-f="employee.tin"></dd></div>
+        <div><dt>Agency</dt><dd data-f="employee.agency"></dd></div>
+        <div><dt>Position</dt><dd data-f="employee.position"></dd></div>
+        <div class="full"><dt>Monthly basic salary</dt>
+          <dd><span data-f="employee.monthly_basic_salary" data-t="peso"></span> &times; <span data-f="employee.months_worked"></span> month(s)</dd></div>
+      </dl>
+
+      <h3>A. Gross compensation income</h3>
+      <div class="row"><span class="l">Basic salary (annual)</span><span class="v" data-f="gross.basic_annual" data-t="peso"></span></div>
+      <div class="row"><span class="l">Mid-year bonus</span><span class="v" data-f="gross.mid_year_bonus" data-t="peso"></span></div>
+      <div class="row"><span class="l">Year-end bonus</span><span class="v" data-f="gross.year_end_bonus" data-t="peso"></span></div>
+      <div class="row"><span class="l">Cash gift</span><span class="v" data-f="gross.cash_gift" data-t="peso"></span></div>
+      <div class="row"><span class="l">Productivity Enhancement Incentive</span><span class="v" data-f="gross.pei" data-t="peso"></span></div>
+      <div class="row"><span class="l">Other bonuses and benefits</span><span class="v" data-f="gross.other_13th_month_benefits" data-t="peso"></span></div>
+      <div class="row"><span class="l">Other taxable compensation</span><span class="v" data-f="gross.other_taxable_compensation" data-t="peso"></span></div>
+      <div class="row total"><span class="l">Total gross compensation</span><span class="v" data-f="gross.gross_compensation" data-t="peso"></span></div>
+
+      <h3>B. Exempt and non-taxable items</h3>
+      <div class="row"><span class="l">13th month pay and benefits (up to 90,000)</span><span class="v" data-f="non_taxable.exempt_benefits" data-t="peso"></span></div>
+      <div class="row"><span class="l">GSIS contributions (employee share)</span><span class="v" data-f="non_taxable.gsis" data-t="peso"></span></div>
+      <div class="row"><span class="l">PhilHealth premium (employee share)</span><span class="v" data-f="non_taxable.philhealth" data-t="peso"></span></div>
+      <div class="row"><span class="l">Pag-IBIG contributions</span><span class="v" data-f="non_taxable.pagibig" data-t="peso"></span></div>
+      <div class="row total"><span class="l">Total mandatory contributions</span><span class="v" data-f="non_taxable.total_mandatory" data-t="peso"></span></div>
+
+      <h3>C. Tax computation</h3>
+      <div class="row"><span class="l">Taxable benefits above 90,000</span><span class="v" data-f="taxable.taxable_benefits_excess" data-t="peso"></span></div>
+      <div class="row total"><span class="l">Net taxable compensation income</span><span class="v" data-f="taxable.taxable_income" data-t="peso"></span></div>
+      <div class="row"><span class="l">Tax bracket (rate on the excess)</span><span class="v" data-f="taxable.marginal_rate" data-t="rate"></span></div>
+      <div class="row due"><span class="l">Tax due</span><span class="v" data-f="taxable.tax_due" data-t="peso"></span></div>
+      <div class="row"><span class="l">Less: tax withheld</span><span class="v" data-f="taxable.tax_withheld" data-t="peso"></span></div>
+      <div class="row" id="balanceRow"><span class="l" data-f="taxable.status"></span><span class="v" id="balanceValue"></span></div>
+      <div class="row"><span class="l">Average monthly withholding tax</span><span class="v" data-f="taxable.monthly_withholding" data-t="peso"></span></div>
+      <div class="row"><span class="l">Effective tax rate (on gross)</span><span class="v" data-f="taxable.effective_rate" data-t="pct"></span></div>
+
+      <p class="note">This is an estimate. Check it against the latest BIR, GSIS, PhilHealth, and Pag-IBIG issuances before filing.</p>
+      <button type="button" class="ghost no-print" onclick="window.print()">Print or save as PDF</button>
+    </div>
+  </section>
+</main>
+
+<script src="tax_engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
